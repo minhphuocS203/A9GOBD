@@ -3,48 +3,6 @@
 #include "OBDlib.h"
 
 
-
-//// đọc lỗi khi uart gửi về
-//void OBD::getResponseerror(void){
-//  char inChar=0;
-//  while( Serial.available() > 0){
-//    char c = Serial.read();
-//    if( c == '\0'){
-//    }
-//    else{
-//    rxDtaerror += c;
-//    };
-//    delay(30);
-//  }
-//}
-//
-//// đọc lỗi (mode3)
-//int OBD::Readerror(void){
-//  int error = 0;
-//  Serial.write("03\r"); 
-//  delay(200);
-//  getResponseerror();// 
-//  String rxDatanew1 = "";
-//  String rxDatanew2 = "";
-//  for (int i = 0; i < rxDtaerror.length(); i ++){
-//    if(( rxDtaerror[i] == '4') && ( rxDtaerror[i +1] == '3')){
-//      rxDatanew1 += rxDtaerror.substring(i+5,rxDtaerror.length());
-//        }
-//  
-//     }
-//        
-//  for (int i = 0; i < rxDatanew1.length();  i ++){
-//    if( rxDatanew1[i] == ':') {
-//      rxDatanew1[i]=' ';
-//      rxDatanew1[i -1]=' ';}
-//      }
-//      
-//  for (int i = 0; i < rxDatanew1.length();  i ++){  
-//    if   (rxDatanew1[i] != ' '){                        
-//      rxDatanew += rxDatanew1[i];}
-//       }
-// }
-
 // đọc dữ liệu khi uart gửi về
 void OBD::getResponse(){
   while( Serial2.available()){
