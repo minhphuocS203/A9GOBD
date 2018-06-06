@@ -3,45 +3,6 @@
 #include "OBDlib.h"
 #include "ArduinoJson.h"
 
-/********************************************************************
- * Fucntion   : SendData_A9
- * Author     : 
- * Date       : 19/5/2018
- * Description: send a string command to A9 via UART.
-                SoftwareSerial is not recommended
- ********************************************************************/
- uint8_t A9G_Module::SendData_A9G(char* ATcommand, char* ex_answer,unsigned long int timeout){
-  uint8_t x, answer;
-  memset(response,'\0', 100);
-
-  Serial.println(ATcommand); // in ra lenh ra mang hinh
-
-  // cho phan hoi 
-  answer=0;
-  x=0;
-  previousSend=millis();
-  
-  do{
-  if (Serial.available())
-  {
-    response[x]=Serial.read();
-    x++;
-    if (strstr(response,ex_answer)!=NULL )
-    {
-      answer=1;
-    }
-    else
-    {
-      answer=0;
-    }
-  }
- }while ((answer==0) && (millis() - previousSend < timeout));
- 
-#if DEBUG
-  Serial1.println(response);
-#endif    
-}
-
 /****************************************************
   Author      : Do Hieu
   Description : Goi command qua A9G tu Arduino
@@ -71,15 +32,15 @@ void A9G_Module::init(){
   #if DEBUG
     Serial1.println("Initializing A9G module....."); 
   #endif
-  SendData_A9G("AT","OK",1000);           
-  SendData_A9G("AT+CREG=1","OK",2000); 
-  SendData_A9G("AT+CGATT=1","OK",2000);
-  SendData_A9G("AT+CGDCONT=1,\"IP\",\"V-INTERNET\"","OK",2000); 
-  SendData_A9G("AT+CGACT=1,1","OK",2000);
-  SendData_A9G("AT+GPS=0","OK",1000);     
-  SendData_A9G("AT+GPS?","OK",1000);     
-  SendData_A9G("AT+GPS=1","OK",1000);
-  SendData_A9G("AT+GPSRD=10","OK",1000);      // Lay sau 10s
+  sendData_A9G("AT");           delay(1000);
+  sendData_A9G("AT+GPS=0");     delay(2000);
+  sendData_A9G("AT+CREG=1");    delay(3000);
+  sendData_A9G("AT+CGATT=1");   delay(3000);
+  sendData_A9G("AT+CGDCONT=1,\"IP\",\"V-INTERNET\""); delay(3000);
+  sendData_A9G("AT+CGACT=1,1");   delay(3000);
+  sendData_A9G("AT+GPS?");      delay(2000);
+  sendData_A9G("AT+GPS=1");     delay(1000);
+  sendData_A9G("AT+GPSRD=10");  delay(1000);  // Lay sau 10s
 }
 
 /********************************************************************
@@ -91,7 +52,7 @@ void A9G_Module::init(){
  ********************************************************************/
 void A9G_Module::getData(int timeGet) {  
   char ch;
-  while ( Serial.available()){
+  while (Serial.available()){
     ch = Serial.read();
     RxData += ch;
   }
@@ -107,25 +68,6 @@ void A9G_Module::getData(int timeGet) {
       
       #if DEBUG
         Serial1.print(RxData);
-        
-        Serial1.print("Hour: ");
-        Serial1.print(timehhVN);
-        Serial1.print("h");
-        Serial1.print(timemm);
-        Serial1.print("m");
-        Serial1.print(timess);
-        Serial1.print("s   ");
-        
-        Serial1.print("Date: ");
-        Serial1.print(datedd);
-        Serial1.print("/");
-        Serial1.print(datemm);
-        Serial1.print("/");
-        Serial1.println(dateyy);
-        
-        Serial1.print("Mean Sea level altitude:");
-        Serial1.print(altitude);
-        Serial1.println(" M");
         
         Serial1.print("latitude :");
         Serial1.println(latitude); 
@@ -161,19 +103,8 @@ bool A9G_Module::check_GPS_Frame()
   {
     if ((RxData.substring(i, i + 5) == "+GPSR")) 
     {
-        timehhUTC = RxData.substring(14+i, 16+i);
-        timehhVN= timehhUTC.toInt()+7;
-        timemm = RxData.substring(16+i, 18+i);
-        timess = RxData.substring(18+i, 20+i);
-        
         temp_lat    = RxData.substring(25+i, 34+i); 
         temp_long   = RxData.substring(37+i, 47+i);
-
-        altitude = RxData.substring(55+i, 60+i);
-        
-//        datedd = RxData.substring(222+i, 15+i);
-//        datemm = RxData.substring(57+i, 59+i);
-//        dateyy = RxData.substring(515+i, 517+i);
 
         if ((temp_lat.toInt()!=0) && (temp_long.toInt()!=0)){// kiem tra du lieu co dung hay khong
           return 1; 

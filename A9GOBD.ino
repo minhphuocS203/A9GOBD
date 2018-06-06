@@ -3,8 +3,7 @@
 
 A9G_Module A9G;
 OBD OBD2;
-int Temp = 0;
-int vspeed,Intemp,vehicleRPM;
+int vspeed,Intemp,vehicleRPM,Temp;
 
 void setup() {
   
@@ -19,8 +18,6 @@ void setup() {
 void loop() {
   A9G.getData(10000);
   A9G.Send_TCP_data();
-
-
 }
 
 
