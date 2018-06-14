@@ -63,8 +63,10 @@ void A9G_Module::getData(int timeGet) {
       tran_GPS();    // convert GPS data include latitude and longitude 
       OBD2.ReadTemp();
       OBD2.ReadIntemperature();
-      OBD2.ReadSpeed();
+//      OBD2.ReadSpeed();
       OBD2.ReadRPM();
+//      OBD2.ReadMAF();
+      OBD2.ReadThrottleposition();
       
       #if DEBUG
         Serial1.print(RxData);
@@ -205,15 +207,15 @@ void A9G_Module::JsonWrap() {                     // đóng gói dữ liệu l�
     
     int adc; 
     root["a1"] = vehicleRPM;                     // các du lieu dc truyen vao
-    root["a2"] = Temp;
+    root["a2"] = random(100);
     root["a3"] = Intemp;
-    root["io12"] = vspeed;
+    root["io12"] = Thro_position;
     root["io13"] = digitalRead(13);
     root["io14"] = digitalRead(14);
     root["io15"] = digitalRead(15);
     root["io16"] = digitalRead(16);
     root["d1"] = random(100);
-    root["d2"] = random(100);
+    root["d2"] = Temp;
     root["d3"] = random(100);
     root["d4"] = random(100);
     root["d5"] = random(100);

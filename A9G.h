@@ -4,7 +4,7 @@
 #include "OBDlib.h"
 
 
-#define DEBUG 1
+#define DEBUG 0
 
 
 typedef enum {    // khai bao cac trai thai của SendTCP_State

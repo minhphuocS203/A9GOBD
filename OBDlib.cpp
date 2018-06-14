@@ -16,42 +16,44 @@ void OBD::getResponse(){
 }
 
 // đọc nhiệt độ nước làm mát
-int OBD::ReadTemp(void){
-
-//  if(modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
+void OBD::ReadTemp(){
+  if(modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
+  Serial2.flush();
   Serial2.write("0105\r"); // 05 là PID của đọc nhiệt độ nước
   delay(200);
   getResponse();// gọi hàm đọc giá trị từ uart
   Temp = strtol(&rxDta[10],0,16)-40; // chuyển đổi giá trị hex nhận được sang dec
   rxDta =""; // xóa chuỗi vừa lưu để tiếp tục đọc giá trị khác
 
+  
 #if debug
   Serial1.print("THW: ");
   Serial1.println(Temp);
 #endif   
-  }
+}
 
 // đọc điện áp của accu
 float OBD::ReadVoltage(void){
   float Voltage = 0;
-  Serial.flush();
-  Serial.write("atrv\r");
+  Serial2.flush();
+  Serial2.write("atrv\r");
   delay(200);
   getResponse(); 
   Voltage = rxDta.substring(4,'V').toFloat();
   rxDta ="";
   return Voltage;
 }
+
 // đọc tốc độ động cơ
-int OBD::ReadRPM(){
-  
-//  if(modedata[12] == 0){return -1;}
-//  Serial.flush();
+void OBD::ReadRPM(){
+  if(modedata[12] == 0){return -1;}
+  Serial2.flush();
   Serial2.write("010c\r");
   delay(200);
   getResponse(); 
   vehicleRPM = ((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/4;
   rxDta = ""; 
+  
 #if debug
   Serial1.print("speedRPM: ");
   Serial1.println(vehicleRPM);
@@ -59,9 +61,9 @@ int OBD::ReadRPM(){
 }
 
 //đọc tốc độ xe
-int OBD::ReadSpeed() {
-//  if(modedata[13] == 0){return -1;}
-//  Serial.flush();
+void OBD::ReadSpeed() {
+  if(modedata[13] == 0){return -1;}
+  Serial2.flush();
   Serial2.write("010d\r");
   delay(200);
   getResponse();
@@ -73,54 +75,74 @@ int OBD::ReadSpeed() {
   Serial1.println(vspeed);
 #endif   
 }
+
 //reset OBD
 int OBD::ResetOBDII (void){
   byte ResetBoard = 0;
   rxDta ="";
-  Serial.flush();
-  Serial.write("atz\r");
+  Serial2.flush();
+  Serial2.write("atz\r");
   delay(2000);
   getResponse();
   if(rxDta.substring(3,9) == "ELM327"){ResetBoard =1;} else {ResetBoard =0;}
   rxDta ="";
   return ResetBoard;
 }
-// settup chế độ cho ELM327 tự quét giao thức phù hợp với xe
-/*
-int OBD::SetupBoard (void){
-  int Setup = 0;
-   Serial.flush();
-  Serial.write("atsp0\r");
-  delay(2000);
-  getResponse();
-  if( rxDta.substring(5,7) == "OK"){Setup =1;} else {Setup =0;}
-  rxDta ="";
-  return Setup;
-}
-*/
+
 // đọc nhiệt độ khí nạp
-int OBD::ReadIntemperature () {
-//  int Intemp = 0;
-//  if(modedata[15] == 0){return -1;}
-//  Serial.flush();
+void OBD::ReadIntemperature() {
+  if(modedata[15] == 0){return -1;}
+  Serial2.flush();
   Serial2.write("010f\r");
   delay(200);
   getResponse();
   Intemp =(strtol(&rxDta[10],0,16)) -40;
   rxDta ="";
   
- #if debug
+#if debug
   Serial1.print("intaketemp: ");
   Serial1.println(Intemp);
 #endif   
 }
 
+// đọc khối lượng khí nạp
+void OBD::ReadMAF(){
+  if(modedata[18] == 0){return -1;}
+  Serial2.flush();
+  Serial2.write("0110\r");
+  delay(200);
+  getResponse(); 
+  MAF=((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/100;
+  rxDta = ""; 
+  
+#if debug
+  Serial1.print("MAF: ");
+  Serial1.println(MAF);
+#endif   
+}
+
+// đọc vị trí bướm ga
+void OBD::ReadThrottleposition() {
+  if(modedata[17] == 0){return -1;}
+  Serial2.flush();
+  Serial2.write("0111\r");
+  delay(200);
+  getResponse();
+  Thro_position = ((strtol(&rxDta[10],0,16))*100)/255;
+  rxDta ="";
+
+#if debug
+  Serial1.print("VTBuomga: ");
+  Serial1.println(Thro_position);
+#endif   
+}
+
 // đọc vị trí bàn đạp ga
-int OBD::ReadPedalposition (void) {
+int OBD::ReadPedalposition(void) {
   int Pposition = 0;
   if(modedata[90] == 0){return -1;}
-  Serial.flush();
-  Serial.write("015a\r");
+  Serial2.flush();
+  Serial2.write("015a\r");
   delay(200);
   getResponse();
   Pposition = (strtol(&rxDta[10],0,16))*100/255;
@@ -132,92 +154,73 @@ int OBD::ReadPedalposition (void) {
 int OBD::ReadTimingadvance (void) {
   int a = 0;
    if(modedata[14] == 0){return -1;}
-  Serial.flush();
-  Serial.write("010e\r");
+  Serial2.flush();
+  Serial2.write("010e\r");
   delay(200);
   getResponse();
  a = ((strtol(&rxDta[10],0,16))/2) - 64;
   rxDta ="";
    return a;
 }
+
 // đọc thời gian phun nhiên liệu
 int OBD::ReadFuelinjectiontiming (void){
-  
   int b = 0;
    if(modedata[93] == 0){return -1;}
-  Serial.flush();
-  Serial.write("015d\r");
+  Serial2.flush();
+  Serial2.write("015d\r");
   delay(200);
   getResponse(); 
- b= (((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/128)-210;
+  b= (((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/128)-210;
   rxDta = ""; 
  return b;
 }
+
 // đọc nhiệt độ dầu động cơ
 int OBD::ReadEngineoiltemperature (void) {
   int c = 0;
     if(modedata[92] == 0){return -1;}
-  Serial.flush();
-  Serial.write("015c\r");
+  Serial2.flush();
+  Serial2.write("015c\r");
   delay(200);
   getResponse();
   c =( strtol(&rxDta[10],0,16)) -40;
   rxDta ="";
    return c;
 }
+
 //đọc thời gian chạy của động cơ từ khi bắt đầu khởi động
 int OBD::ReadRuntime(void){
   int d = 0;
  if(modedata[31] == 0){return -1;}
-  Serial.flush();
-  Serial.write("011f\r");
+  Serial2.flush();
+  Serial2.write("011f\r");
   delay(200);
   getResponse(); 
  d= (strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16);
   rxDta = ""; 
  return d;
 }
-// đọc vị trí bướm ga
-int OBD::ReadThrottleposition (void) {
-  int e = 0;
-  if(modedata[17] == 0){return -1;}
-  Serial.flush();
-  Serial.write("0111\r");
-  delay(200);
-  getResponse();
-  e = (strtol(&rxDta[10],0,16))*100/255;
-  rxDta ="";
-   return e;
-}
-// đọc khối lượng khí nạp
-int OBD::ReadMAF (void){
-  int f = 0;
-  if(modedata[18] == 0){return -1;}
-  Serial.flush();
-  Serial.write("0110\r");
-  delay(200);
-  getResponse(); 
- f= ((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/100;
-  rxDta = ""; 
- return f;
-}
+
 //kiểm tra kết nối với board
 int OBD::SetupConnect (void){
   int g = 0;
-  Serial.flush();
-  Serial.write("0100\r"); 
+  Serial2.flush();
+  Serial2.write("0100\r"); 
   delay(2000);
   getResponse();
   if( rxDta.substring(0,9) == "010041 00"){g =1;} else {g =0;}
   rxDta ="";
   return g;
 }
+
 //kiểm tra những PID nào được hỗ trợ
-void OBD::SupportBoard(void){
+void OBD::SupportBoard(){
+  
  // mang 0100
  rxDta = ""; 
-  Serial.flush();
-  Serial.write("0100\r");
+  Serial2.flush();
+  Serial2.write("0100\r");
   delay(1000);
   getResponse();
   
@@ -271,8 +274,8 @@ void OBD::SupportBoard(void){
   }
   
 // mang 0120
-  Serial.flush();
-  Serial.write("0120\r");
+  Serial2.flush();
+  Serial2.write("0120\r");
   delay(1000);
   getResponse();
  if(( rxDta.substring(4,6) == "NO") ||( rxDta.substring(4,6) == "SE")) {
@@ -325,8 +328,8 @@ void OBD::SupportBoard(void){
 
   // mang 0140
 
-  Serial.flush();
-  Serial.write("0140\r");
+  Serial2.flush();
+  Serial2.write("0140\r");
   delay(1000);
   getResponse();
  if(( rxDta.substring(4,6) == "NO") || (rxDta.substring(4,6) == "SE")) {
@@ -380,8 +383,8 @@ void OBD::SupportBoard(void){
 
   // mang 0160
 
-  Serial.flush();
-  Serial.write("0160\r");
+  Serial2.flush();
+  Serial2.write("0160\r");
   delay(1000);
   getResponse();
  if(( rxDta.substring(4,6) == "NO") || (rxDta.substring(4,6) == "SE")) {
@@ -433,8 +436,8 @@ void OBD::SupportBoard(void){
  
   // mang 0180
 
-  Serial.flush();
-  Serial.write("0180\r");
+  Serial2.flush();
+  Serial2.write("0180\r");
   delay(1000);
   getResponse();
  if(( rxDta.substring(4,6) == "NO") || (rxDta.substring(4,6) == "SE")) {
@@ -500,9 +503,6 @@ void OBD::SupportBoard(void){
   for ( int i = 128; i<= 159; i++){
     modedata[i] = arxDta5[i-128];
     }
-}
-void OBD::settupuart(void){
- Serial.begin(115200);
 }
 
 
