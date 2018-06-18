@@ -16,16 +16,18 @@ void OBD::getResponse(){
 }
 
 // đọc nhiệt độ nước làm mát
-void OBD::ReadTemp(){
-  if(modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
+int OBD::ReadTemp(){
+
+  // if(modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
   Serial2.flush();
   Serial2.write("0105\r"); // 05 là PID của đọc nhiệt độ nước
   delay(200);
+
   getResponse();// gọi hàm đọc giá trị từ uart
   Temp = strtol(&rxDta[10],0,16)-40; // chuyển đổi giá trị hex nhận được sang dec
   rxDta =""; // xóa chuỗi vừa lưu để tiếp tục đọc giá trị khác
+  return Temp;
 
-  
 #if debug
   Serial1.print("THW: ");
   Serial1.println(Temp);
@@ -45,15 +47,19 @@ float OBD::ReadVoltage(void){
 }
 
 // đọc tốc độ động cơ
-void OBD::ReadRPM(){
+int OBD::ReadRPM(){
   if(modedata[12] == 0){return -1;}
+
   Serial2.flush();
   Serial2.write("010c\r");
+
   delay(200);
   getResponse(); 
   vehicleRPM = ((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/4;
   rxDta = ""; 
-  
+
+  return vehicleRPM;
+
 #if debug
   Serial1.print("speedRPM: ");
   Serial1.println(vehicleRPM);
@@ -61,7 +67,7 @@ void OBD::ReadRPM(){
 }
 
 //đọc tốc độ xe
-void OBD::ReadSpeed() {
+int OBD::ReadSpeed() {
   if(modedata[13] == 0){return -1;}
   Serial2.flush();
   Serial2.write("010d\r");
@@ -69,6 +75,8 @@ void OBD::ReadSpeed() {
   getResponse();
   vspeed = strtol(&rxDta[10],0,16);
   rxDta ="";
+
+  return vspeed;
   
 #if debug
   Serial1.print("speedvehicle: ");
@@ -90,7 +98,7 @@ int OBD::ResetOBDII (void){
 }
 
 // đọc nhiệt độ khí nạp
-void OBD::ReadIntemperature() {
+int OBD::ReadIntemperature() {
   if(modedata[15] == 0){return -1;}
   Serial2.flush();
   Serial2.write("010f\r");
@@ -98,6 +106,8 @@ void OBD::ReadIntemperature() {
   getResponse();
   Intemp =(strtol(&rxDta[10],0,16)) -40;
   rxDta ="";
+
+  return Intemp;
   
 #if debug
   Serial1.print("intaketemp: ");
@@ -106,7 +116,7 @@ void OBD::ReadIntemperature() {
 }
 
 // đọc khối lượng khí nạp
-void OBD::ReadMAF(){
+int OBD::ReadMAF(){
   if(modedata[18] == 0){return -1;}
   Serial2.flush();
   Serial2.write("0110\r");
@@ -114,6 +124,8 @@ void OBD::ReadMAF(){
   getResponse(); 
   MAF=((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/100;
   rxDta = ""; 
+
+  return MAF;
   
 #if debug
   Serial1.print("MAF: ");
@@ -122,7 +134,7 @@ void OBD::ReadMAF(){
 }
 
 // đọc vị trí bướm ga
-void OBD::ReadThrottleposition() {
+int OBD::ReadThrottleposition() {
   if(modedata[17] == 0){return -1;}
   Serial2.flush();
   Serial2.write("0111\r");
@@ -130,6 +142,8 @@ void OBD::ReadThrottleposition() {
   getResponse();
   Thro_position = ((strtol(&rxDta[10],0,16))*100)/255;
   rxDta ="";
+
+  return Thro_position;
 
 #if debug
   Serial1.print("VTBuomga: ");
@@ -503,6 +517,16 @@ void OBD::SupportBoard(){
   for ( int i = 128; i<= 159; i++){
     modedata[i] = arxDta5[i-128];
     }
+}
+
+int *OBD::getOBData(int num){
+  int *pOBD;
+  *pOBD = num;
+  *(pOBD + 1) = ReadRPM();
+  *(pOBD + 2) = ReadIntemperature();
+  *(pOBD + 3) = ReadMAF();
+  *(pOBD + 4) = ReadSpeed();
+  return pOBD;
 }
 
 

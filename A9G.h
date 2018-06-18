@@ -26,7 +26,7 @@ class A9G_Module
     String temp_lat, temp_long; 
     float LaDDMM, LoDDMM;
     String latitude, longitude; // toa do kinh , vi do
-    char Jsonstring[200];  // Tạo một chuỗi tên là Jsonstring
+    static char Jsonstring[200];  // Tạo một chuỗi tên là Jsonstring
  
     
     void sendData_A9G(String command);
@@ -35,7 +35,7 @@ class A9G_Module
     bool check_GPS_Frame();
     void tran_GPS();
     void Send_TCP_data();
-    void JsonWrap();
+    void JsonWrap(int *data);
     
   private:
   

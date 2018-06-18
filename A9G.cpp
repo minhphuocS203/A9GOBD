@@ -61,12 +61,6 @@ void A9G_Module::getData(int timeGet) {
 
     if(check_GPS_Frame()){
       tran_GPS();    // convert GPS data include latitude and longitude 
-      OBD2.ReadTemp();
-      OBD2.ReadIntemperature();
-//      OBD2.ReadSpeed();
-      OBD2.ReadRPM();
-//      OBD2.ReadMAF();
-      OBD2.ReadThrottleposition();
       
       #if DEBUG
         Serial1.print(RxData);
@@ -174,9 +168,9 @@ void A9G_Module::Send_TCP_data()
         break;
 
       case SendedTCPsend :
-        if ((LaDDMM!=0) && (LoDDMM!=0)){
-          JsonWrap();
-        }
+        // if ((LaDDMM!=0) && (LoDDMM!=0)){  // ham nay de lam gi ??
+        //   JsonWrap();
+        // }
         sendData_A9G(Jsonstring);
         state = SendedData;
       break;
@@ -196,7 +190,7 @@ void A9G_Module::Send_TCP_data()
 * Date       : 19/5/2018
 * Description: Packet data format
 ********************************************************************/
-void A9G_Module::JsonWrap() {                     // đóng gói dữ liệu lại theo chuẩn
+ void A9G_Module::JsonWrap(int *dataOBD) {                     // đóng gói dữ liệu lại theo chuẩn
     memset(Jsonstring,'\0',200);
     StaticJsonBuffer<400> jsonBuffer;
     JsonObject& root = jsonBuffer.createObject();
@@ -206,22 +200,21 @@ void A9G_Module::JsonWrap() {                     // đóng gói dữ liệu l�
     data.add(longitude);
     
     int adc; 
-    root["a1"] = vehicleRPM;                     // các du lieu dc truyen vao
+    root["a1"] = *(dataOBD + 1);                     // các du lieu dc truyen vao
     root["a2"] = random(100);
-    root["a3"] = Intemp;
+    root["a3"] = *(dadataOBDta + 2);
     root["io12"] = Thro_position;
     root["io13"] = digitalRead(13);
     root["io14"] = digitalRead(14);
     root["io15"] = digitalRead(15);
     root["io16"] = digitalRead(16);
     root["d1"] = random(100);
-    root["d2"] = Temp;
+    root["d2"] = *(dataOBD + 3);
     root["d3"] = random(100);
     root["d4"] = random(100);
     root["d5"] = random(100);
 
-    root.printTo(Jsonstring); // lưu chuối Json vừa tạo vào chuỗi Jsonstring
-      
+    root.printTo(Jsonstring); // lưu chuối Json vừa tạo vào chuỗi Jsonstring 
 }
 
 

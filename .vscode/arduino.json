@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:mega",
+    "port": "/dev/ttyACM0",
+    "sketch": "A9GOBD.ino",
+    "configuration": "cpu=atmega2560"
+}

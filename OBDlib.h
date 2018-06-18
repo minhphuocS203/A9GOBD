@@ -8,13 +8,13 @@
 
 class OBD {
 public:
-      void ReadTemp();
+      int ReadTemp();
       float ReadVoltage(void);
-      void ReadRPM();
-      void ReadSpeed();
-      void ReadIntemperature();
-      void ReadMAF();
-      void ReadThrottleposition();
+      int ReadRPM();
+      int ReadSpeed();
+      int ReadIntemperature();
+      int ReadMAF();
+      int ReadThrottleposition();
       int ReadPedalposition(void);
       int ReadTimingadvance (void);
       int ReadFuelinjectiontiming (void);
@@ -33,12 +33,14 @@ public:
       float Readfuelrate (void);
       //int SetupBoard (void); // atsp0
 
+      int *getOBData(int num);
+
       void getResponse();
       
 };
 
 extern OBD OBD2;
-extern int Temp,vspeed,Intemp,vehicleRPM,MAF,Thro_position;
+static int Temp,vspeed,Intemp,vehicleRPM,MAF,Thro_position;
 extern String rxDta;
 extern byte rxData[32],arxDta1[32],arxDta2[32],arxDta3[32],arxDta4[32],arxDta5[32],modedata[160];
 extern int m,a,b,c,d;
