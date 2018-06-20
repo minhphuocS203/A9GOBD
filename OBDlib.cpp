@@ -18,13 +18,14 @@ void OBD::getResponse(){
 // đọc nhiệt độ nước làm mát
 int OBD::ReadTemp(){
 
-  // if(modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
+  if (modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
+  
   Serial2.flush();
   Serial2.write("0105\r"); // 05 là PID của đọc nhiệt độ nước
   delay(200);
 
-  getResponse();// gọi hàm đọc giá trị từ uart
-  Temp = strtol(&rxDta[10],0,16)-40; // chuyển đổi giá trị hex nhận được sang dec
+  getResponse(); // gọi hàm đọc giá trị từ uart
+  int Temp = strtol(&rxDta[10],0,16)-40; // chuyển đổi giá trị hex nhận được sang dec
   rxDta =""; // xóa chuỗi vừa lưu để tiếp tục đọc giá trị khác
   return Temp;
 
@@ -55,7 +56,7 @@ int OBD::ReadRPM(){
 
   delay(200);
   getResponse(); 
-  vehicleRPM = ((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/4;
+  int vehicleRPM = ((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/4;
   rxDta = ""; 
 
   return vehicleRPM;
@@ -73,7 +74,7 @@ int OBD::ReadSpeed() {
   Serial2.write("010d\r");
   delay(200);
   getResponse();
-  vspeed = strtol(&rxDta[10],0,16);
+  int vspeed = strtol(&rxDta[10],0,16);
   rxDta ="";
 
   return vspeed;
@@ -99,12 +100,14 @@ int OBD::ResetOBDII (void){
 
 // đọc nhiệt độ khí nạp
 int OBD::ReadIntemperature() {
+
   if(modedata[15] == 0){return -1;}
+
   Serial2.flush();
   Serial2.write("010f\r");
   delay(200);
   getResponse();
-  Intemp =(strtol(&rxDta[10],0,16)) -40;
+  int Intemp =(strtol(&rxDta[10],0,16)) -40;
   rxDta ="";
 
   return Intemp;
@@ -122,7 +125,7 @@ int OBD::ReadMAF(){
   Serial2.write("0110\r");
   delay(200);
   getResponse(); 
-  MAF=((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/100;
+  int MAF=((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/100;
   rxDta = ""; 
 
   return MAF;
@@ -140,7 +143,7 @@ int OBD::ReadThrottleposition() {
   Serial2.write("0111\r");
   delay(200);
   getResponse();
-  Thro_position = ((strtol(&rxDta[10],0,16))*100)/255;
+  int Thro_position = ((strtol(&rxDta[10],0,16))*100)/255;
   rxDta ="";
 
   return Thro_position;
@@ -230,6 +233,9 @@ int OBD::SetupConnect (void){
 
 //kiểm tra những PID nào được hỗ trợ
 void OBD::SupportBoard(){
+
+  int m,a,b,c,d; 
+  byte rxData[32],arxDta1[32],arxDta2[32],arxDta3[32],arxDta4[32],arxDta5[32];
   
  // mang 0100
  rxDta = ""; 
@@ -519,14 +525,13 @@ void OBD::SupportBoard(){
     }
 }
 
-int *OBD::getOBData(int num){
-  int *pOBD;
-  *pOBD = num;
+int *OBD::getOBData(){
+  int *pOBD = dataOBD;
+  *pOBD = 4;
   *(pOBD + 1) = ReadRPM();
   *(pOBD + 2) = ReadIntemperature();
-  *(pOBD + 3) = ReadMAF();
+  *(pOBD + 3) = ReadTemp();
   *(pOBD + 4) = ReadSpeed();
   return pOBD;
 }
-
 

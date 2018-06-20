@@ -122,24 +122,20 @@ bool A9G_Module::check_GPS_Frame()
  * Description: Convert GPS data include latitude and longitude
  ********************************************************************/
 void A9G_Module::tran_GPS() {
-    String LaDD, LaMM, LaMMMM, LaM; // Kinh tuyen
-    String LoDDD, LoMM, LoMMMM, LoM; // Vi tuyen
+    String LaDD, LaMM; // Kinh tuyen
+    String LoDDD, LoMM; // Vi tuyen
     float XMM; // Kinh tuyen
     float YMM; // Vi tuyen
 //**Doi kinh do latitude, format latitude DDMM.MMMM**//
     LaDD = temp_lat.substring(0, 2); // tach DD lay độ
-    LaMM = temp_lat.substring(2, 4); // tach MM truoc dau cham
-    LaMMMM = temp_lat.substring(5); // tach MMMM sau dấu chấm
-    LaM = LaMM + LaMMMM  ; // noi 2 chuoi lại
-    XMM = LaM.toInt() / (600000.0); // doi sang phut (6000000.0 module a7)
+    LaMM = temp_lat.substring(2); // tach MM truoc dau cham
+    XMM = LaMM.toFloat() / (60); // doi sang phut (6000000.0 module a7)
     LaDDMM = LaDD.toInt() + XMM; // cong thuc tinh GPS
     latitude = String(LaDDMM, 6); // lay 6 so sau dau phay
 //** Doi vi do longitude, format longitude DDDMM.MMMM **//
     LoDDD = temp_long.substring(0, 3); // tach DD tu chuoi ra
-    LoMM = temp_long.substring(3, 5); // tach MM truoc dau cham
-    LoMMMM = temp_long.substring(6); // tach MMMM con lại sau dấu chấm
-    LoM = LoMM + LoMMMM  ; // noi 2 chuoi lại
-    YMM = LoM.toInt() / (600000.0); // doi sang phut (6000000.0 module a7) 
+    LoMM = temp_long.substring(3); // tach MM truoc dau cham
+    YMM = LoMM.toFloat() / (60); // doi sang phut (6000000.0 module a7) 
     LoDDMM = LoDDD.toInt() + YMM; // cong thuc tinh GPS
     longitude = String(LoDDMM, 6); // hien 6 so sau dau phay 
 }
@@ -168,16 +164,15 @@ void A9G_Module::Send_TCP_data()
         break;
 
       case SendedTCPsend :
-        // if ((LaDDMM!=0) && (LoDDMM!=0)){  // ham nay de lam gi ??
-        //   JsonWrap();
-        // }
+        if ((LaDDMM!=0) && (LoDDMM!=0)){  // ham nay de lam gi ??   
         sendData_A9G(Jsonstring);
+        }
         state = SendedData;
       break;
 
       case SendedData :
         Serial.write(0x1A);
-        state =DoNothing;
+        state = DoNothing;
       break;
     }
   } 
@@ -199,24 +194,23 @@ void A9G_Module::Send_TCP_data()
     data.add(latitude);  // thêm 2 tọa độ vào Data
     data.add(longitude);
     
-    int adc; 
-    root["a1"] = *(dataOBD + 1);                     // các du lieu dc truyen vao
+    int *pOBD = dataOBD; 
+    root["a1"] = *(pOBD + 1);                     // các du lieu dc truyen vao
     root["a2"] = random(100);
-    root["a3"] = *(dadataOBDta + 2);
-    root["io12"] = Thro_position;
+    root["a3"] = *(pOBD + 2);
+    root["io12"] = *(pOBD + 4);
     root["io13"] = digitalRead(13);
     root["io14"] = digitalRead(14);
     root["io15"] = digitalRead(15);
     root["io16"] = digitalRead(16);
     root["d1"] = random(100);
-    root["d2"] = *(dataOBD + 3);
+    root["d2"] = *(pOBD + 3);
     root["d3"] = random(100);
     root["d4"] = random(100);
     root["d5"] = random(100);
 
     root.printTo(Jsonstring); // lưu chuối Json vừa tạo vào chuỗi Jsonstring 
 }
-
 
 
 

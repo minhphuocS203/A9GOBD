@@ -33,16 +33,14 @@ public:
       float Readfuelrate (void);
       //int SetupBoard (void); // atsp0
 
-      int *getOBData(int num);
+      int *getOBData();
 
       void getResponse();
       
 };
+static int dataOBD[5];
+static String rxDta; // Uart buffer
+static byte modedata[160]; // check mode data
 
-extern OBD OBD2;
-static int Temp,vspeed,Intemp,vehicleRPM,MAF,Thro_position;
-extern String rxDta;
-extern byte rxData[32],arxDta1[32],arxDta2[32],arxDta3[32],arxDta4[32],arxDta5[32],modedata[160];
-extern int m,a,b,c,d;
 
 #endif

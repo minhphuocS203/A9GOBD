@@ -3,10 +3,8 @@
 
 A9G_Module A9G;
 OBD OBD2;
+int previousJson = 0;
 
-String rxDta;
-byte rxData[32],arxDta1[32],arxDta2[32],arxDta3[32],arxDta4[32],arxDta5[32],modedata[160];
-int m,a,b,c,d;
  
 void setup() {
   
@@ -21,8 +19,12 @@ void setup() {
 void loop() {
   A9G.getData(10000);
   A9G.Send_TCP_data();
-}
 
+  if (millis() - previousJson > 2000) {
+    previousJson = millis();
+    A9G.JsonWrap(OBD2.getOBData());
+  }
+}
 
 
 

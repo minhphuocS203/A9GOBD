@@ -4,7 +4,7 @@
 #include "OBDlib.h"
 
 
-#define DEBUG 0
+#define DEBUG 1
 
 
 typedef enum {    // khai bao cac trai thai của SendTCP_State
@@ -26,7 +26,7 @@ class A9G_Module
     String temp_lat, temp_long; 
     float LaDDMM, LoDDMM;
     String latitude, longitude; // toa do kinh , vi do
-    static char Jsonstring[200];  // Tạo một chuỗi tên là Jsonstring
+    char Jsonstring[200];  // send this String
  
     
     void sendData_A9G(String command);
@@ -35,14 +35,13 @@ class A9G_Module
     bool check_GPS_Frame();
     void tran_GPS();
     void Send_TCP_data();
-    void JsonWrap(int *data);
+    void JsonWrap(int *dataOBD);
     
   private:
   
   
 };
 #endif
-
 
 
 
