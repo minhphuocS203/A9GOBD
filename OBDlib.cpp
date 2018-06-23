@@ -5,7 +5,7 @@
 
 // đọc dữ liệu khi uart gửi về
 void OBD::getResponse(){
-  while( Serial2.available()){
+  while( Serial2.available()>0){
     char c = Serial2.read();
     rxDta += c;
   }
@@ -17,16 +17,14 @@ void OBD::getResponse(){
 
 // đọc nhiệt độ nước làm mát
 int OBD::ReadTemp(){
-
   if (modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
-  
   Serial2.flush();
   Serial2.write("0105\r"); // 05 là PID của đọc nhiệt độ nước
   delay(200);
-
   getResponse(); // gọi hàm đọc giá trị từ uart
   int Temp = strtol(&rxDta[10],0,16)-40; // chuyển đổi giá trị hex nhận được sang dec
   rxDta =""; // xóa chuỗi vừa lưu để tiếp tục đọc giá trị khác
+  
   return Temp;
 
 #if debug
@@ -37,23 +35,21 @@ int OBD::ReadTemp(){
 
 // đọc điện áp của accu
 float OBD::ReadVoltage(void){
-  float Voltage = 0;
   Serial2.flush();
   Serial2.write("atrv\r");
   delay(200);
   getResponse(); 
-  Voltage = rxDta.substring(4,'V').toFloat();
+  float Voltage = rxDta.substring(4,'V').toFloat();
   rxDta ="";
+  
   return Voltage;
 }
 
 // đọc tốc độ động cơ
 int OBD::ReadRPM(){
   if(modedata[12] == 0){return -1;}
-
   Serial2.flush();
   Serial2.write("010c\r");
-
   delay(200);
   getResponse(); 
   int vehicleRPM = ((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/4;
@@ -100,9 +96,7 @@ int OBD::ResetOBDII (void){
 
 // đọc nhiệt độ khí nạp
 int OBD::ReadIntemperature() {
-
   if(modedata[15] == 0){return -1;}
-
   Serial2.flush();
   Serial2.write("010f\r");
   delay(200);
@@ -138,8 +132,9 @@ int OBD::ReadMAF(){
 
 // đọc vị trí bướm ga
 int OBD::ReadThrottleposition() {
-  if(modedata[17] == 0){return -1;}
-  Serial2.flush();
+//  if(modedata[17] == 0){return -1;}
+//  
+//  Serial2.flush();
   Serial2.write("0111\r");
   delay(200);
   getResponse();
@@ -155,7 +150,7 @@ int OBD::ReadThrottleposition() {
 }
 
 // đọc vị trí bàn đạp ga
-int OBD::ReadPedalposition(void) {
+int OBD::ReadPedalposition() {
   int Pposition = 0;
   if(modedata[90] == 0){return -1;}
   Serial2.flush();
@@ -164,7 +159,7 @@ int OBD::ReadPedalposition(void) {
   getResponse();
   Pposition = (strtol(&rxDta[10],0,16))*100/255;
   rxDta ="";
-   return Pposition;
+  return Pposition;
 }
 
 //đọc góc đánh lửa sớm
@@ -175,9 +170,9 @@ int OBD::ReadTimingadvance (void) {
   Serial2.write("010e\r");
   delay(200);
   getResponse();
- a = ((strtol(&rxDta[10],0,16))/2) - 64;
+  a = ((strtol(&rxDta[10],0,16))/2) - 64;
   rxDta ="";
-   return a;
+  return a;
 }
 
 // đọc thời gian phun nhiên liệu
@@ -194,16 +189,15 @@ int OBD::ReadFuelinjectiontiming (void){
 }
 
 // đọc nhiệt độ dầu động cơ
-int OBD::ReadEngineoiltemperature (void) {
-  int c = 0;
-    if(modedata[92] == 0){return -1;}
-  Serial2.flush();
+int OBD::ReadEngineoiltemperature () {
+//  if(modedata[92] == 0){return -1;}
+//  Serial2.flush();
   Serial2.write("015c\r");
   delay(200);
   getResponse();
-  c =( strtol(&rxDta[10],0,16)) -40;
+  int c = strtol(&rxDta[10],0,16)-40;
   rxDta ="";
-   return c;
+  return c;
 }
 
 //đọc thời gian chạy của động cơ từ khi bắt đầu khởi động
@@ -238,7 +232,7 @@ void OBD::SupportBoard(){
   byte rxData[32],arxDta1[32],arxDta2[32],arxDta3[32],arxDta4[32],arxDta5[32];
   
  // mang 0100
- rxDta = ""; 
+  rxDta = ""; 
   Serial2.flush();
   Serial2.write("0100\r");
   delay(1000);
@@ -531,7 +525,9 @@ int *OBD::getOBData(){
   *(pOBD + 1) = ReadRPM();
   *(pOBD + 2) = ReadIntemperature();
   *(pOBD + 3) = ReadTemp();
-  *(pOBD + 4) = ReadSpeed();
+  *(pOBD + 4) = ReadThrottleposition();
+  *(pOBD + 5) = ReadMAF();
+  *(pOBD + 6) = ReadEngineoiltemperature();
   return pOBD;
 }
 

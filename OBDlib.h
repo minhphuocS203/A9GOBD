@@ -9,16 +9,16 @@
 class OBD {
 public:
       int ReadTemp();
-      float ReadVoltage(void);
+      float ReadVoltage();
       int ReadRPM();
       int ReadSpeed();
       int ReadIntemperature();
       int ReadMAF();
       int ReadThrottleposition();
-      int ReadPedalposition(void);
+      int ReadPedalposition();
       int ReadTimingadvance (void);
       int ReadFuelinjectiontiming (void);
-      int ReadEngineoiltemperature (void);
+      int ReadEngineoiltemperature ();
       int ReadRuntime(void);
       int SetupConnect (void); // 0100
       void settupuart(void);
@@ -38,9 +38,8 @@ public:
       void getResponse();
       
 };
-static int dataOBD[5];
+static int dataOBD[7];
 static String rxDta; // Uart buffer
 static byte modedata[160]; // check mode data
-
 
 #endif

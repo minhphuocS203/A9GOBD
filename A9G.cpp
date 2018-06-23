@@ -40,7 +40,7 @@ void A9G_Module::init(){
   sendData_A9G("AT+CGACT=1,1");   delay(3000);
   sendData_A9G("AT+GPS?");      delay(2000);
   sendData_A9G("AT+GPS=1");     delay(1000);
-  sendData_A9G("AT+GPSRD=10");  delay(1000);  // Lay sau 10s
+  sendData_A9G("AT+GPSRD=5");  delay(1000);  // Lay sau 10s
 }
 
 /********************************************************************
@@ -102,7 +102,7 @@ bool A9G_Module::check_GPS_Frame()
         temp_lat    = RxData.substring(25+i, 34+i); 
         temp_long   = RxData.substring(37+i, 47+i);
 
-        if ((temp_lat.toInt()!=0) && (temp_long.toInt()!=0)){// kiem tra du lieu co dung hay khong
+        if ((temp_lat.toInt()>= 800) && (temp_lat.toInt()<= 2400) && (temp_long.toInt()> 10200 )&& (temp_long.toInt()< 11000 ) ){// kiem tra du lieu co dung hay khong
           return 1; 
         }
         else{
@@ -196,10 +196,10 @@ void A9G_Module::Send_TCP_data()
     
     int *pOBD = dataOBD; 
     root["a1"] = *(pOBD + 1);                     // các du lieu dc truyen vao
-    root["a2"] = random(100);
-    root["a3"] = *(pOBD + 2);
-    root["io12"] = *(pOBD + 4);
-    root["io13"] = digitalRead(13);
+    root["a2"] = *(pOBD + 2);
+    root["a3"] = *(pOBD + 4);
+    root["io12"] = *(pOBD + 5);
+    root["io13"] = *(pOBD + 6);
     root["io14"] = digitalRead(14);
     root["io15"] = digitalRead(15);
     root["io16"] = digitalRead(16);
