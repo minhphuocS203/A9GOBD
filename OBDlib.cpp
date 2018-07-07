@@ -17,8 +17,8 @@ void OBD::getResponse(){
 
 // đọc nhiệt độ nước làm mát
 int OBD::ReadTemp(){
-  if (modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
-  Serial2.flush();
+//  if (modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
+//  Serial2.flush();
   Serial2.write("0105\r"); // 05 là PID của đọc nhiệt độ nước
   delay(200);
   getResponse(); // gọi hàm đọc giá trị từ uart
@@ -31,18 +31,6 @@ int OBD::ReadTemp(){
   Serial1.print("THW: ");
   Serial1.println(Temp);
 #endif   
-}
-
-// đọc điện áp của accu
-float OBD::ReadVoltage(void){
-  Serial2.flush();
-  Serial2.write("atrv\r");
-  delay(200);
-  getResponse(); 
-  float Voltage = rxDta.substring(4,'V').toFloat();
-  rxDta ="";
-  
-  return Voltage;
 }
 
 // đọc tốc độ động cơ
@@ -81,19 +69,6 @@ int OBD::ReadSpeed() {
 #endif   
 }
 
-//reset OBD
-int OBD::ResetOBDII (void){
-  byte ResetBoard = 0;
-  rxDta ="";
-  Serial2.flush();
-  Serial2.write("atz\r");
-  delay(2000);
-  getResponse();
-  if(rxDta.substring(3,9) == "ELM327"){ResetBoard =1;} else {ResetBoard =0;}
-  rxDta ="";
-  return ResetBoard;
-}
-
 // đọc nhiệt độ khí nạp
 int OBD::ReadIntemperature() {
   if(modedata[15] == 0){return -1;}
@@ -101,7 +76,7 @@ int OBD::ReadIntemperature() {
   Serial2.write("010f\r");
   delay(200);
   getResponse();
-  int Intemp =(strtol(&rxDta[10],0,16)) -40;
+  int Intemp =(strtol(&rxDta[10],0,16))-40;
   rxDta ="";
 
   return Intemp;
@@ -133,7 +108,6 @@ int OBD::ReadMAF(){
 // đọc vị trí bướm ga
 int OBD::ReadThrottleposition() {
 //  if(modedata[17] == 0){return -1;}
-//  
 //  Serial2.flush();
   Serial2.write("0111\r");
   delay(200);
@@ -211,6 +185,31 @@ int OBD::ReadRuntime(void){
  d= (strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16);
   rxDta = ""; 
  return d;
+}
+
+// đọc điện áp của accu
+float OBD::ReadVoltage(void){
+  Serial2.flush();
+  Serial2.write("atrv\r");
+  delay(200);
+  getResponse(); 
+  float Voltage = rxDta.substring(4,'V').toFloat();
+  rxDta ="";
+  
+  return Voltage;
+}
+
+//reset OBD
+int OBD::ResetOBDII (void){
+  byte ResetBoard = 0;
+  rxDta ="";
+  Serial2.flush();
+  Serial2.write("atz\r");
+  delay(2000);
+  getResponse();
+  if(rxDta.substring(3,9) == "ELM327"){ResetBoard =1;} else {ResetBoard =0;}
+  rxDta ="";
+  return ResetBoard;
 }
 
 //kiểm tra kết nối với board
@@ -521,7 +520,7 @@ void OBD::SupportBoard(){
 
 int *OBD::getOBData(){
   int *pOBD = dataOBD;
-  *pOBD = 4;
+  *pOBD = 6;
   *(pOBD + 1) = ReadRPM();
   *(pOBD + 2) = ReadIntemperature();
   *(pOBD + 3) = ReadTemp();

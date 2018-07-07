@@ -69,13 +69,7 @@ void A9G_Module::getData(int timeGet) {
         Serial1.println(latitude); 
         Serial1.print("longitude :");
         Serial1.println(longitude); 
-        Serial1.println("Chuyen doi thanh cong");
       #endif
-      } else {
-        #if DEBUG
-          Serial1.print(RxData);
-          Serial1.println("Chuyen doi khong thanh cong");
-        #endif
       }
  
     if (state == DoNothing){ // ???
@@ -102,7 +96,7 @@ bool A9G_Module::check_GPS_Frame()
         temp_lat    = RxData.substring(25+i, 34+i); 
         temp_long   = RxData.substring(37+i, 47+i);
 
-        if ((temp_lat.toInt()>= 800) && (temp_lat.toInt()<= 2400) && (temp_long.toInt()> 10200 )&& (temp_long.toInt()< 11000 ) ){// kiem tra du lieu co dung hay khong
+        if ((temp_lat.toInt()>= 800) && (temp_lat.toInt()<= 2400) && (temp_long.toInt()> 10200) && (temp_long.toInt()< 11000)){ // gioi han toa do trong VN
           return 1; 
         }
         else{
@@ -164,7 +158,7 @@ void A9G_Module::Send_TCP_data()
         break;
 
       case SendedTCPsend :
-        if ((LaDDMM!=0) && (LoDDMM!=0)){  // ham nay de lam gi ??   
+        if ((LaDDMM!=0) && (LoDDMM!=0)){  // bo qua lan lay dư liệu đầu tiên   
         sendData_A9G(Jsonstring);
         }
         state = SendedData;
@@ -195,16 +189,16 @@ void A9G_Module::Send_TCP_data()
     data.add(longitude);
     
     int *pOBD = dataOBD; 
-    root["a1"] = *(pOBD + 1);                     // các du lieu dc truyen vao
-    root["a2"] = *(pOBD + 2);
-    root["a3"] = *(pOBD + 4);
-    root["io12"] = *(pOBD + 5);
+    root["a1"] = *(pOBD + 4);       // Throttleposition       // các du lieu dc truyen vao
+    root["a2"] = *(pOBD + 2);       // Intemperature
+    root["a3"] = *(pOBD + 3);       // Temp
+    root["io12"] = *(pOBD + 5);     
     root["io13"] = *(pOBD + 6);
     root["io14"] = digitalRead(14);
     root["io15"] = digitalRead(15);
     root["io16"] = digitalRead(16);
-    root["d1"] = random(100);
-    root["d2"] = *(pOBD + 3);
+    root["d1"] = *(pOBD + 1);      // RPM
+    root["d2"] = random(100);       
     root["d3"] = random(100);
     root["d4"] = random(100);
     root["d5"] = random(100);

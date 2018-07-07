@@ -5,7 +5,7 @@ A9G_Module A9G;
 OBD OBD2;
 int previousJson = 0;
 
- 
+
 void setup() {
   
   Serial.begin (115200); // khoi tao cong serial giao tiep voi module
@@ -18,12 +18,15 @@ void setup() {
 }
 void loop() {
   A9G.getData(10000);
-  A9G.Send_TCP_data();
-
+  
   if (millis() - previousJson > 2000) {
     previousJson = millis();
     A9G.JsonWrap(OBD2.getOBData());
   }
+  
+  A9G.Send_TCP_data();
+
+
 }
 
 
