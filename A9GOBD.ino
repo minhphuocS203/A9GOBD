@@ -25,8 +25,6 @@ void loop() {
   }
   
   A9G.Send_TCP_data();
-
-
 }
 
 
