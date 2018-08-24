@@ -35,7 +35,7 @@ class A9G_Module
     bool check_GPS_Frame();
     void tran_GPS();
     void Send_TCP_data();
-    void JsonWrap(int *dataOBD);
+    void JsonWrap(int *dataOBD, String *DTCs);
     
   private:
   

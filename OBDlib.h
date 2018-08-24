@@ -12,8 +12,8 @@
 #define HC05_BR_115200  115200
 
 // Delay define 
-#define Delay_OBD2_Init                   2000
-#define Delay_OBD2_Init_SupportBoard      2000
+#define Delay_OBD2_Init                   200
+#define Delay_OBD2_Init_SupportBoard      2000 
 #define Delay_sending_data                10
 #define Delay_getting_data                200
 
@@ -30,7 +30,14 @@
 #define PID_FUEL_INJ_TIME     "015d\r"
 #define PID_OIL_ENG_TEMP      "015c\r"
 #define PID_RUNTIME_START     "011f\r"
+
 #define debug 0
+
+typedef struct OBD_Buffer
+{
+      int DTC_count;
+      String OBD_VIN_ID[18];
+} OBD_Data;
 
 class OBD {
 public:
@@ -42,10 +49,10 @@ public:
       int ReadMAF();
       int ReadThrottleposition();
       int ReadPedalposition();
-      int ReadTimingadvance (void);
-      int ReadFuelinjectiontiming (void);
+      int ReadTimingadvance();
+      int ReadFuelinjectiontiming();
       int ReadEngineoiltemperature ();
-      int ReadRuntime(void);
+      int ReadRuntime();
       int SetupConnect (void); // 0100
       void settupuart(void);
       void SupportBoard() ;// kiem tra ho tro
@@ -57,15 +64,28 @@ public:
       int Readfuellevel (void) ;
       int Readambienttemp (void);
       float Readfuelrate (void);
+      void Mode03_Read();
       //int SetupBoard (void); // atsp0
 
       int *getOBData();
 
-      void getResponse();    
+      void getResponse();  
+
+      /*Translator*/  
+      void Mode03_Bit01_Trans(String inStr);
+      void Read_VIN();
 };
 
-static int dataOBD[7];
+static int dataOBD[11];
 static String rxDta; // Uart buffer
 static byte modedata[160]; // check mode data
+
+/*Variable hold DTC's mode 3 OBD*/
+extern String DTC_temp[4]; 
+extern int DTC_count;      
+
+/*Variable hold VIN ID of Vehicle*/
+extern String OBD_VIN_ID[18];
+
 
 #endif

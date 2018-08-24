@@ -2,7 +2,12 @@
 #include "A9G.h"
 #include "OBDlib.h"
 
+/*Variable hold DTC's mode 3 OBD*/
+String DTC_temp[4]; 
+int DTC_count;
+String OBD_VIN_ID[18];
 
+/**********************************/
 // đọc dữ liệu khi uart gửi về
 void OBD::getResponse(){
   while( Serial2.available()>0){
@@ -17,11 +22,7 @@ void OBD::getResponse(){
 
 // đọc nhiệt độ nước làm mát
 int OBD::ReadTemp(){
-  if (modedata[5] == 0){return -1;} // kiểm tra PID 05 có được hỗ trợ không?
-
-  Serial2.flush();
   Serial2.write(PID_COOLANT_TEMP); // 05 là PID của đọc nhiệt độ nước
-
   delay(Delay_getting_data);
   getResponse(); // gọi hàm đọc giá trị từ uart
   int Temp = strtol(&rxDta[10],0,16)-40; // chuyển đổi giá trị hex nhận được sang dec
@@ -56,10 +57,8 @@ int OBD::ReadRPM(){
 //đọc tốc độ xe
 int OBD::ReadSpeed() {
   if(modedata[13] == 0){return -1;}
-
   Serial2.flush();
   Serial2.write(PID_VEH_SPEED);
-
   delay(Delay_getting_data);
   getResponse();
   int vspeed = strtol(&rxDta[10],0,16);
@@ -75,15 +74,11 @@ int OBD::ReadSpeed() {
 
 // đọc nhiệt độ khí nạp
 int OBD::ReadIntemperature() {
-
   if(modedata[15] == 0){return -1;}
-
   Serial2.flush();
   Serial2.write(PID_INT_AIR_TEMP);
-
   delay(Delay_getting_data);
   getResponse();
-
   int Intemp =(strtol(&rxDta[10],0,16))-40;
   rxDta ="";
 
@@ -115,8 +110,6 @@ int OBD::ReadMAF(){
 
 // đọc vị trí bướm ga
 int OBD::ReadThrottleposition() {
-//  if(modedata[17] == 0){return -1;}
-//  Serial2.flush();
   Serial2.write(PID_THROTTLE_POS);
   delay(Delay_getting_data);
   getResponse();
@@ -146,23 +139,20 @@ int OBD::ReadPedalposition() {
 }
 
 //đọc góc đánh lửa sớm
-int OBD::ReadTimingadvance (void) {
-
+int OBD::ReadTimingadvance() {
   if(modedata[14] == 0){return -1;} // return 1 if mode 14 not support
-
   Serial2.flush();
   Serial2.write(PID_TIMING_ADV);
-
   delay(Delay_getting_data);
   getResponse();
-
   int a = ((strtol(&rxDta[10],0,16))/2) - 64;
   rxDta ="";
+  
   return a;
 }
 
 // đọc thời gian phun nhiên liệu
-int OBD::ReadFuelinjectiontiming (void){
+int OBD::ReadFuelinjectiontiming(){
   int b = 0;
   if(modedata[93] == 0){return -1;}
   Serial2.flush();
@@ -171,42 +161,39 @@ int OBD::ReadFuelinjectiontiming (void){
   getResponse(); 
   b= (((strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16))/128)-210;
   rxDta = ""; 
+  
  return b;
 }
 
 // đọc nhiệt độ dầu động cơ
 int OBD::ReadEngineoiltemperature () {
-//  if(modedata[92] == 0){return -1;}
-//  Serial2.flush();
+  if(modedata[92] == 0){return -1;}
   Serial2.write(PID_OIL_ENG_TEMP);
   delay(Delay_getting_data);
   getResponse();
   int c = strtol(&rxDta[10],0,16)-40;
   rxDta ="";
+  
   return c;
 }
 
 //đọc thời gian chạy của động cơ từ khi bắt đầu khởi động
-int OBD::ReadRuntime(void){
-
+int OBD::ReadRuntime(){
   if(modedata[31] == 0){return -1;}
-
   Serial2.flush();
   Serial2.write("011f\r");
   delay(Delay_getting_data);
   getResponse(); 
-
   int runTime= (strtol(&rxDta[10],0,16)*256)+strtol(&rxDta[13],0,16);
   rxDta = ""; 
+  
   return runTime;
 }
 
 // đọc điện áp của accu
-float OBD::ReadVoltage(void){
-
+float OBD::ReadVoltage(){
   Serial2.flush();
   Serial2.write("atrv\r");
-
   delay(Delay_getting_data);
   getResponse(); 
   float Voltage = rxDta.substring(4,'V').toFloat();
@@ -215,6 +202,7 @@ float OBD::ReadVoltage(void){
   return Voltage;
 }
 
+/**********************************/
 //reset OBD
 int OBD::ResetOBDII (void){
   byte ResetBoard = 0;
@@ -233,13 +221,11 @@ int OBD::SetupConnect (void){
   int g = 0;
   Serial2.flush();
   Serial2.write(PID_SUPPORT00); 
-
   delay(Delay_OBD2_Init);
-
   getResponse();
-
   if( rxDta.substring(0,9) == "010041 00"){g =1;} else {g =0;}
   rxDta ="";
+  
   return g;
 }
 
@@ -537,15 +523,167 @@ void OBD::SupportBoard(){
     }
 }
 
-int *OBD::getOBData(){
+/**********************************/
+int *OBD::getOBData(){        // lay thong so dong co tu OBD
   int *pOBD = dataOBD;
-  *pOBD = 6;
-  *(pOBD + 1) = ReadRPM();
+  *pOBD = 10;
+  *(pOBD + 1) = ReadThrottleposition(); 
   *(pOBD + 2) = ReadIntemperature();
   *(pOBD + 3) = ReadTemp();
-  *(pOBD + 4) = ReadThrottleposition();
-  *(pOBD + 5) = ReadMAF();
-  *(pOBD + 6) = ReadEngineoiltemperature();
+  *(pOBD + 4) = ReadRPM();
+  *(pOBD + 5) = ReadVoltage();
+  *(pOBD + 6) = ReadMAF();
+  *(pOBD + 7) = ReadTimingadvance();
+  *(pOBD + 8) = ReadFuelinjectiontiming();
+  *(pOBD + 9) = ReadEngineoiltemperature();
+  *(pOBD + 10)= DTC_count;
   return pOBD;
 }
 
+/**********************************/
+void OBD::Mode03_Bit01_Trans(String inStr){   // chuyển đổi thành mã lỗi
+  String str = "00000";
+  
+  /*Copy into buffer*/
+  str[2]= inStr[1];
+  str[3]= inStr[3];
+  str[4]= inStr[4];
+  
+  /*Translate in to DTC code*/
+  switch(inStr[0]){
+    case '0':
+    str[0]= 'P';str[1]= '0';
+    break;
+
+    case '1':
+    str[0]= 'P';str[1]= '1';
+    break;
+
+    case '2':
+    str[0]= 'P';str[1]= '2';
+    break;
+
+    case '3':
+    str[0]= 'P';str[1]= '3';
+    break;
+
+    case '4':
+    str[0]= 'C';str[1]= '0';
+    break;
+
+    case '5':
+    str[0]= 'C';str[1]= '1';
+    break;
+
+    case '6':
+    str[0]= 'C';str[1]= '2';
+    break;
+
+    case '7':
+    str[0]= 'C';str[1]= '3';
+    break;
+
+    case '8':
+    str[0]= 'B';str[1]= '0';
+    break;
+    
+    case '9':
+    str[0]= 'B';str[1]= '1';
+    break;
+    
+    case 'A':
+    str[0]= 'B';str[1]= '2';
+    break;
+
+    case 'B':
+    str[0]= 'B';str[1]= '3';
+    break;
+
+    case 'C':
+    str[0]= 'U';str[1]= '0';
+    break;
+
+    case 'D':
+    str[0]= 'U';str[1]= '1';
+    break;
+
+    case 'E':
+    str[0]= 'U';str[1]= '2';
+    break;
+
+    case 'F':
+    str[0]= 'U';str[1]= '3';
+    break;
+  }
+
+  /*Save DTC code in to DTC_temp array*/
+  DTC_temp[DTC_count++]= str;
+}
+
+void OBD::Mode03_Read(){    // doc ma loi 
+  /*Reset DTC's count to 0*/
+  DTC_count = 0;
+
+  int i = 0;
+  int temp = 0;
+
+  Serial2.flush();
+  Serial2.write("03\r");
+  delay(Delay_OBD2_Init);
+  getResponse();
+  //rxDta= "43 01 30 40 02 03 " ;
+  /*Get pointer of "43" token*/
+  while (rxDta[i]){   // kiem tra 2 kí tự '4' '3'  dạng mã lỗi: 43 01 03 40
+    if (rxDta[i]=='4' && rxDta[i+1] == '3') {
+      break;
+      }
+    i++;
+  }
+
+  i += 6;     // dưa con tro dịch sang phai 6 kí tự
+
+  /*Get DTC's code and send to Translate function*/
+  while ((i+6) < rxDta.length()){
+      Mode03_Bit01_Trans(rxDta.substring(i,i+6));
+      i+= 6;
+  }
+
+  /*Reset rxDta*/
+  rxDta = "";
+};
+
+/**********************************/
+void OBD::Read_VIN(void){   // doc so VIN
+  
+  Serial2.write("0902\r");
+  delay(1000);
+  getResponse();
+
+  /*Data for testing*/
+  //rxDta = "014 0: 49 02 01 31 44 34 1: 47 50 30 30 52 35 35 2: 42 31 32 33 34 35 36";
+
+  char str[100]; 
+  /*Reset field in OBD VIN*/
+  memset(str,'\0',100);
+  memset(OBD_VIN_ID,'\0',20);
+
+  int i,j = 0;
+  while (rxDta[i]){        // lọc lấy dữ lấy số VIN
+    if (rxDta[i+1] == ':') {
+      i += 3;
+      continue;
+    }
+    str[j++] = rxDta[i];
+    i++;
+  }
+ /*Chuyển đổi Số VIN*/ 
+  char * pEnd = &str[13];
+  char buff[]=" "; j =0;
+  for (i =0 ; i < 17; i ++){
+      long int li1 = strtol (pEnd,&pEnd,16);
+      OBD_VIN_ID[j++] = (char) li1;
+  }
+
+  /*Reset rxDta*/
+  rxDta = "";
+};

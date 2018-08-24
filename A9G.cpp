@@ -179,7 +179,7 @@ void A9G_Module::Send_TCP_data()
 * Date       : 19/5/2018
 * Description: Packet data format
 ********************************************************************/
- void A9G_Module::JsonWrap(int *dataOBD) {                     // đóng gói dữ liệu lại theo chuẩn
+ void A9G_Module::JsonWrap(int *dataOBD, String *DTCs) {                     // đóng gói dữ liệu lại theo chuẩn
     memset(Jsonstring,'\0',200);
     StaticJsonBuffer<400> jsonBuffer;
     JsonObject& root = jsonBuffer.createObject();
@@ -189,17 +189,23 @@ void A9G_Module::Send_TCP_data()
     data.add(longitude);
     
     int *pOBD = dataOBD; 
-    root["a1"] = *(pOBD + 4);       // Throttleposition       // các du lieu dc truyen vao
+    root["a1"] = *(pOBD + 1);       // Throttleposition       // các du lieu dc truyen vao
     root["a2"] = *(pOBD + 2);       // Intemperature
     root["a3"] = *(pOBD + 3);       // Temp
-    root["io12"] = *(pOBD + 5);     
-    root["io13"] = *(pOBD + 6);
-    root["io14"] = digitalRead(14);
-    root["io15"] = digitalRead(15);
-    root["io16"] = digitalRead(16);
-    root["d1"] = *(pOBD + 1);      // RPM
-    root["d2"] = random(100);       
-    root["d3"] = random(100);
+    root["io12"] = *(pOBD + 4);     // RPM
+    root["io13"] = *(pOBD + 5);     // Voltage
+    root["io14"] = *(pOBD + 6);     // MAF
+    root["io15"] = *(pOBD + 7);     // Timingadvance
+    root["io16"] = *(pOBD + 8);     // Fuelinjectiontiming   
+    root["d1"] = *(pOBD + 9);       // Engineoiltemperature
+    root["d2"] = *(pOBD + 10);      // Number of DTC
+    int sum_DTC = *(pOBD + 10);
+
+    JsonArray& dtc = root.createNestedArray("dtc"); 
+    for (int i = 0; i < sum_DTC; i ++) {  // đưa mã lỗi lên web
+      dtc.add(*(DTCs+i));                 
+    }
+    root["d3"] = *(pOBD + 11);       // DTCs
     root["d4"] = random(100);
     root["d5"] = random(100);
 
